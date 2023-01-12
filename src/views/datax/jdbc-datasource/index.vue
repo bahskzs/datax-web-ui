@@ -27,9 +27,9 @@
       fit
       highlight-current-row
     >
-      <!-- <el-table-column align="center" label="序号" width="95">
-        <template slot-scope="scope">{{ scope.$index }}</template>
-      </el-table-column> -->
+      <el-table-column align="center" label="序号" width="95">
+        <template slot-scope="scope">{{ scope.row.id }}</template>
+      </el-table-column>
       <el-table-column label="数据源" width="200" align="center">
         <template slot-scope="scope">{{ scope.row.datasource }}</template>
       </el-table-column>
@@ -52,9 +52,9 @@
       <el-table-column label="ZK地址" width="200" align="center" :show-overflow-tooltip="true">
         <template slot-scope="scope">{{ scope.row.zkAdress ? scope.row.zkAdress:'-' }}</template>
       </el-table-column>
-      <el-table-column label="数据库名" width="200" align="center" :show-overflow-tooltip="true">-->
-        <template slot-scope="scope">{{ scope.row.databaseName ? scope.row.databaseName:'-' }}</template>-->
-      </el-table-column>
+<!--      <el-table-column label="数据库名" width="200" align="center" :show-overflow-tooltip="true">&ndash;&gt;-->
+<!--        <template slot-scope="scope">{{ scope.row.databaseName ? scope.row.databaseName:'-' }}</template>&ndash;&gt;-->
+<!--      </el-table-column>-->
       <el-table-column label="备注" width="150" align="center">
         <template slot-scope="scope">{{ scope.row.comments }}</template>
       </el-table-column>

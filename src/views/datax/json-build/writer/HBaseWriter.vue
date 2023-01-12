@@ -63,6 +63,7 @@
 <script>
 import * as dsQueryApi from '@/api/metadata-query'
 import { list as jdbcDsList } from '@/api/datax-jdbcDatasource'
+// import { getDataSourceList as jdbcDsList } from '@/api/datax-jdbcDatasource'
 import Bus from '../busWriter'
 export default {
   name: 'HBaseWriter',
@@ -88,7 +89,8 @@ export default {
     return {
       jdbcDsQuery: {
         current: 1,
-        size: 200
+        size: 200,
+        ifCount: true
       },
       wDsList: [],
       fromTableName: '',

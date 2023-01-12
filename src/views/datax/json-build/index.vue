@@ -6,6 +6,7 @@
         <el-step title="步骤 2" description="构建writer">2</el-step>
         <el-step title="步骤 3" description="字段映射">3</el-step>
         <el-step title="步骤 4" description="构建">4</el-step>
+
       </el-steps>
 
       <div v-show="active===1" class="step1">
@@ -165,6 +166,7 @@ export default {
         }
         if (this.active === 4) {
           this.temp.jobJson = this.configJson
+          console.log('json:' + this.configJson)
           job.createJob(this.temp).then(() => {
             this.$notify({
               title: 'Success',
