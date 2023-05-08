@@ -12,8 +12,10 @@
 运行
 
 ```
-npm install [ 慢的话用  npm install --registry https://registry.npm.taobao.org]
+npm install  
 ```
+
+// [ 慢的话用  npm install --registry https://registry.npm.taobao.org]
 
 修改配置
 

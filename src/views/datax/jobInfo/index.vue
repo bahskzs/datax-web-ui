@@ -14,6 +14,9 @@
       <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-edit" @click="handleCreate">
         添加
       </el-button>
+      <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-position" @click="handleBatchExecute">
+        批量执行
+      </el-button>
       <!-- <el-checkbox v-model="showReviewer" class="filter-item" style="margin-left:15px;" @change="tableKey=tableKey+1">
         reviewer
       </el-checkbox> -->
@@ -27,7 +30,13 @@
       highlight-current-row
       style="width: 100%"
       size="medium"
+      ref="table"
+      @selection-change="handleSelectionChange"
     >
+      <el-table-column
+        type="selection"
+        width="55">
+      </el-table-column>
       <el-table-column align="center" label="ID" width="80">
         <template slot-scope="scope">{{ scope.row.id }}</template>
       </el-table-column>
@@ -552,6 +561,37 @@ export default {
       this.dialogFormVisible = true
       this.$nextTick(() => {
         this.$refs['dataForm'].clearValidate()
+      })
+    },
+    handleBatchExecute() {
+      // 获取选中的行
+      const selectedRows = this.$refs.table.selection
+      const tasks = selectedRows.map(row => ({
+        jobId: row.id,
+        executorParam: row.executorParam
+      }))
+      this.$confirm('确定执行吗？', '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        // 遍历tasks，执行任务
+        tasks.forEach(row => {
+          console.log(row.jobId + ':' + row.executorParam)
+          job.triggerJob(row).then(response => {
+            this.$notify({
+              title: 'Success',
+              message: 'Execute Successfully',
+              type: 'success',
+              duration: 2000
+            })
+          })
+        })
+      }).catch(() => {
+        this.$message({
+          type: 'info',
+          message: '已取消执行'
+        })
       })
     },
     createData() {

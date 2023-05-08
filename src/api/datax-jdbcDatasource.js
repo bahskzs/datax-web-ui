@@ -9,6 +9,13 @@ export function list(params) {
     params
   })
 }
+// TODO 查询涵盖解密后的userName名称
+export function selectWithUserName(params) {
+  return request({
+    url: '/api/jobJdbcDatasource/user/' + params,
+    method: 'get'
+  })
+}
 
 export function fetched(params) {
   return request({

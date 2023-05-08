@@ -101,8 +101,8 @@ export function batchAddJob(data) {
 
 export function buildJob(params) {
   return requeset({
-      url: '/api/job/autoBulid',
-      method: 'get',
-      params
-    })
+    url: '/api/job/autoBulid',
+    method: 'get',
+    params
+  })
 }

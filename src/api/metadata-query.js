@@ -29,6 +29,8 @@ export function getColumns(params) {
   })
 }
 
+
+
 // 根据sql获取字段
 export function getColumnsByQuerySql(params) {
   return request({
@@ -39,13 +41,22 @@ export function getColumnsByQuerySql(params) {
 }
 
 // 根据datasourceID、tablename创建表【目标端】
-export function createTable(params) {
+export function createTable(data) {
   return request({
     url: '/api/metadata/createTable',
     method: 'post',
-    params
+    data
   })
 }
+
+export function createTables(data) {
+  return request({
+    url: '/api/metadata/createTables',
+    method: 'post',
+    data
+  })
+}
+
 // 判断字段是否存在，存在，即更新值，否则添加字段
 export function updateColumnsValue(query) {
   return request({

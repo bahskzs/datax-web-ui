@@ -201,6 +201,21 @@ export const asyncRoutes = [
     ]
   },
   {
+    path: '/datax/fieldsMapping',
+    component: Layout,
+    redirect: '/datax/fieldsMapping',
+    name: 'datasource',
+    meta: { title: '类型映射管理', icon: 'task-tmp' },
+    children: [
+      {
+        path: 'fieldsMapping',
+        name: 'fieldsMapping',
+        component: () => import('@/views/datax/fieldsMapping/index'),
+        meta: { title: '类型映射管理', icon: 'task-tmp' }
+      }
+    ]
+  },
+  {
     path: '/datax/log',
     component: Layout,
     redirect: '/datax/jobLog',

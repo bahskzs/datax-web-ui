@@ -168,9 +168,17 @@ export default {
       this.$emit('selectDataSource', this.dataSource)
     },
     getTableColumns() {
-      const obj = {
-        datasourceId: this.readerForm.datasourceId,
-        tableName: this.readerForm.tableName
+      let obj = {}
+      if ((this.dataSource === 'postgresql' || this.dataSource === 'oracle' || this.dataSource === 'sqlserver') && this.readerForm.tableSchema !== '') {
+        obj = {
+          datasourceId: this.readerForm.datasourceId,
+          tableName: this.readerForm.tableSchema + '.' + this.readerForm.tableName
+        }
+      } else {
+        obj = {
+          datasourceId: this.readerForm.datasourceId,
+          tableName: this.readerForm.tableName
+        }
       }
       dsQueryApi.getColumns(obj).then(response => {
         this.rColumnList = response
@@ -221,7 +229,22 @@ export default {
       if (Bus.dataSourceId) {
         this.readerForm.datasourceId = Bus.dataSourceId
       }
+      // if (this.readerForm.tableSchema !== '') {
+      //   // debugger
+      //   let newReaderForm = {}
+      //   newReaderForm = [...this.readerForm]
+      //   let userName = ''
+      //   userName = await selectWithUserName(this.readerForm.datasourceId)
+      //   newReaderForm.tableName = []
+      //   console.log('username ' + userName)
+      //   if (userName !== this.readerForm.tableSchema) {
+      //     this.$set(newReaderForm.tableName, 0, this.readerForm.tableSchema + '.' + this.readerForm.tableName)
+      //     console.log('newReaderForm.tableName ' + newReaderForm.tableName)
+      //     return newReaderForm
+      //   }
+      // } else {
       return this.readerForm
+      // }
     }
   }
 }

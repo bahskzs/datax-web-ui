@@ -189,6 +189,7 @@ export default {
     },
     // 构建json
     buildJson() {
+      debugger
       const readerData = this.$refs.reader.getData()
       const writeData = this.$refs.writer.getData()
       const readerColumns = this.$refs.mapper.getLColumns()
@@ -232,6 +233,13 @@ export default {
         preSql: writeData.preSql,
         postSql: writeData.postSql
       }
+      // debugger
+      console.log('tableName' + readerData.tableName)
+      // if (readerData.tableSchema !== '') {
+      //   // eslint-disable-next-line no-undef
+      //   this.$set(this.readerData, 'readerData.tableName', readerData.tableSchema + '.' + tableName)
+      // }
+
       const obj = {
         readerDatasourceId: readerData.datasourceId,
         readerTables: [readerData.tableName],

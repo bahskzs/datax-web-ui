@@ -16,7 +16,13 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item v-show="dataSource==='postgresql' || dataSource==='oracle' ||dataSource==='sqlserver'" label="Schema：" prop="tableSchema">
+      <el-form-item label="目标表:">
+      <el-checkbox
+        v-model="writerForm.autoCreate"
+        @change="columnsChange"
+        >是否自动构建目标表</el-checkbox>
+      </el-form-item>
+      <el-form-item v-show="(dataSource==='postgresql' || dataSource==='oracle' ||dataSource==='sqlserver') " label="Schema：" prop="tableSchema">
         <el-select v-model="writerForm.tableSchema" filterable style="width: 300px" @change="schemaChange">
           <el-option
             v-for="item in schemaList"
@@ -26,9 +32,10 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="数据库表名：" prop="tableName">
+      <el-form-item label="数据库表名：" prop="tableName" v-show="!writerForm.autoCreate">
         <el-select
           v-model="fromTableName"
+          v-show="!writerForm.autoCreate"
           allow-create
           default-first-option
           filterable
@@ -43,9 +50,6 @@
             :value="item"
           />
         </el-select>
-        <el-input v-show="writerForm.ifCreateTable" v-model="writerForm.tableName" style="width: 200px;" :placeholder="readerForm.tableName" />
-        <!--<el-input v-model="createTableName" style="width: 195px" />
-        <el-button type="primary" @click="createTable">新增</el-button>-->
       </el-form-item>
       <div style="margin: 5px 0;" />
       <el-form-item label="字段：">
@@ -54,6 +58,10 @@
         <el-checkbox-group v-model="writerForm.columns" @change="wHandleCheckedChange">
           <el-checkbox v-for="c in fromColumnList" :key="c" :label="c">{{ c }}</el-checkbox>
         </el-checkbox-group>
+      </el-form-item>
+      <el-form-item label="目标表命名：" v-show="writerForm.autoCreate">
+        <el-input v-model="createTableName"  style="width: 195px" />
+        <el-button type="primary" @click="createTable">新增</el-button>
       </el-form-item>
       <el-form-item label="前置sql语句：">
         <el-input v-model="writerForm.preSql" placeholder="前置sql在insert之前执行" type="textarea" style="width: 42%" />
@@ -86,7 +94,7 @@ export default {
       fromColumnList: [],
       wTbList: [],
       dataSource: '',
-      createTableName: '',
+      createTableName: this.getReaderData().tableName,
       writerForm: {
         datasourceId: undefined,
         tableName: '',
@@ -96,13 +104,15 @@ export default {
         preSql: '',
         postSql: '',
         ifCreateTable: false,
-        tableSchema: ''
+        tableSchema: '',
+        autoCreate: false
       },
       readerForm: this.getReaderData(),
       rules: {
         datasourceId: [{ required: true, message: 'this is required', trigger: 'change' }],
         tableName: [{ required: true, message: 'this is required', trigger: 'change' }],
-        tableSchema: [{ required: true, message: 'this is required', trigger: 'change' }]
+        tableSchema: [{ required: true, message: 'this is required', trigger: 'change' }],
+        createTableName: [{ required: true, message: 'this is required', trigger: 'change' }]
       }
     }
   },
@@ -162,6 +172,9 @@ export default {
       // 获取可用表
       this.getTables('rdbmsWriter')
     },
+    columnsChange() {
+      this.getColumns('reader')
+    },
     wDsChange(e) {
       // 清空
       this.writerForm.tableName = ''
@@ -176,9 +189,19 @@ export default {
     },
     // 获取表字段
     getColumns() {
-      const obj = {
+      var tableName = this.writerForm.tableName
+      if (this.writerForm.tableSchema !== '') {
+        tableName = this.writerForm.tableSchema + '.' + tableName
+      }
+      let obj = {
         datasourceId: this.writerForm.datasourceId,
-        tableName: this.writerForm.tableName
+        tableName: tableName
+      }
+      if (this.writerForm.autoCreate) {
+        obj = {
+          datasourceId: this.readerForm.datasourceId,
+          tableName: this.readerForm.tableName
+        }
       }
       dsQueryApi.getColumns(obj).then(response => {
         this.fromColumnList = response
@@ -216,9 +239,17 @@ export default {
       return this.fromTableName
     },
     createTable() {
-      const obj = {
+      // writer datasource , reader datasource, reader tableName, writer tableName
+      console.log('this.fromColumnList : ' + this.writerForm.columns.toString())
+      let obj = {}
+      console.log('this.readerForm.datasourceId:' + this.readerForm.datasourceId)
+      const sourceId = this.readerForm.datasourceId
+      obj = {
         datasourceId: this.writerForm.datasourceId,
-        tableName: this.createTableName
+        tableName: this.createTableName,
+        sourceId: sourceId,
+        readerTableName: this.readerForm.tableName,
+        columnsList: this.writerForm.columns
       }
       dsQueryApi.createTable(obj).then(response => {
         this.$notify({
@@ -228,6 +259,11 @@ export default {
           duration: 2000
         })
       }).catch(() => console.log('promise catch err'))
+      this.writerForm.tableName = obj.tableName
+      this.fromTableName = obj.tableName
+
+      console.log('writerForm.tableName: ' + this.writerForm.tableName)
+      console.log('this.fromTableName: ' + this.fromTableName)
     }
   }
 }
