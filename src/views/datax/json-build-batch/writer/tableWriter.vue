@@ -32,6 +32,16 @@
           @change="refreshTable"
         >是否自动构建目标表(注:同名表自动追加版本)
         </el-checkbox>
+        <el-form-item label="Schema[单源多目标]:" v-show="writerForm.autoCreate">
+          <el-select multiple v-model="multipleSchema" filterable style="width: 300px" >
+            <el-option
+              v-for="item in schemaList"
+              :key="item"
+              :label="item"
+              :value="item"
+            />
+          </el-select>
+        </el-form-item>
         <el-checkbox-group v-model="this.rTbList" v-show="writerForm.autoCreate">
           <el-checkbox v-for="c in rTbList" :key="c" :label="c">{{ c }}</el-checkbox>
         </el-checkbox-group>
@@ -56,12 +66,13 @@ import * as dsQueryApi from '@/api/metadata-query'
 import { list as jdbcDsList } from '@/api/datax-jdbcDatasource'
 // import { getDataSourceList as jdbcDsList } from '@/api/datax-jdbcDatasource'
 import Bus from '../busWriter'
-import { uniq } from 'autoprefixer/lib/utils'
+
 
 export default {
   name: 'TableWriter',
   data() {
     return {
+      loading: false,
       jdbcDsQuery: {
         current: 1,
         size: 600,
@@ -81,6 +92,7 @@ export default {
         isIndeterminate: true,
         tableSchema: ''
       },
+      multipleSchema: [],
       readerForm: this.getReaderData(),
       rules: {
         datasourceId: [{ required: true, message: 'this is required', trigger: 'change' }],
@@ -188,34 +200,42 @@ export default {
       return this.fromTableName
     },
     createTable() {
+      this.loading = true
       // eslint-disable-next-line no-unused-vars
       let obj = {}
       console.log('this.readerForm.datasourceId:' + this.readerForm)
       const sourceId = this.readerForm.datasourceId
       this.rTbList = [...this.readerForm.tables]
       const tList = this.rTbList
-      obj = {
-        datasourceId: this.writerForm.datasourceId,
-        sourceId: sourceId,
-        sourceSchema: this.readerForm.tableSchema,
-        targetSchema: this.writerForm.tableSchema,
-        tableList: tList
+      let targetSchema = [this.writerForm.tableSchema]
+      if (this.multipleSchema.length > 0) {
+        targetSchema = this.multipleSchema
       }
-      const appendList = [...tList]
-      this.wTbList.forEach(
-        e => appendList.push(e)
-      )
-      dsQueryApi.createTables(obj).then(response => {
-        console.log(response)
-        this.$notify({
-          title: 'Success',
-          message: 'Create Table Successfully',
-          type: 'success',
-          duration: 1000
-        })
-        this.wTbList = appendList
-        this.writerForm.tables = tList
-      }).catch(() => console.log('promise catch err'))
+      targetSchema.forEach(schema => {
+        obj = {
+          datasourceId: this.writerForm.datasourceId,
+          sourceId: sourceId,
+          sourceSchema: this.readerForm.tableSchema,
+          targetSchema: schema,
+          tableList: tList
+        }
+        const appendList = [...tList]
+        this.wTbList.forEach(
+          e => appendList.push(e)
+        )
+        dsQueryApi.createTables(obj).then(response => {
+          console.log(response)
+          this.$notify({
+            title: 'Success',
+            message: 'Create Table Successfully',
+            type: 'success',
+            duration: 1000
+          })
+          this.wTbList = appendList
+          this.writerForm.tables = tList
+          this.loading = false
+        }).catch(() => console.log('promise catch err'))
+      })
     }
   }
 }

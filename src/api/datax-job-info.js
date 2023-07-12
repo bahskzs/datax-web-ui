@@ -100,9 +100,18 @@ export function batchAddJob(data) {
 }
 
 export function buildJob(params) {
-  return requeset({
+  return request({
     url: '/api/job/autoBulid',
     method: 'get',
     params
+  })
+}
+
+// 批量拷贝任务并替换数据源
+export function copyJob(data) {
+  return request({
+    url: '/api/job/copy/jobs',
+    method: 'post',
+    data
   })
 }

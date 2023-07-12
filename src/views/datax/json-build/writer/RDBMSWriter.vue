@@ -32,6 +32,16 @@
           />
         </el-select>
       </el-form-item>
+      <el-form-item label="Schema[单源多目标]:" v-show="writerForm.autoCreate">
+        <el-select multiple v-model="multipleSchema" filterable style="width: 300px" >
+          <el-option
+            v-for="item in schemaList"
+            :key="item"
+            :label="item"
+            :value="item"
+          />
+        </el-select>
+      </el-form-item>
       <el-form-item label="数据库表名：" prop="tableName" v-show="!writerForm.autoCreate">
         <el-select
           v-model="fromTableName"
@@ -61,7 +71,7 @@
       </el-form-item>
       <el-form-item label="目标表命名：" v-show="writerForm.autoCreate">
         <el-input v-model="createTableName"  style="width: 195px" />
-        <el-button type="primary" @click="createTable">新增</el-button>
+        <el-button type="primary" @click="createTable" :loading="loading">新增</el-button>
       </el-form-item>
       <el-form-item label="前置sql语句：">
         <el-input v-model="writerForm.preSql" placeholder="前置sql在insert之前执行" type="textarea" style="width: 42%" />
@@ -82,6 +92,7 @@ export default {
   name: 'RDBMSWriter',
   data() {
     return {
+      loading: false,
       jdbcDsQuery: {
         current: 1,
         size: 600,
@@ -107,6 +118,7 @@ export default {
         tableSchema: '',
         autoCreate: false
       },
+      multipleSchema: [],
       readerForm: this.getReaderData(),
       rules: {
         datasourceId: [{ required: true, message: 'this is required', trigger: 'change' }],
@@ -239,29 +251,53 @@ export default {
       return this.fromTableName
     },
     createTable() {
+      this.loading = true
       // writer datasource , reader datasource, reader tableName, writer tableName
       console.log('this.fromColumnList : ' + this.writerForm.columns.toString())
       let obj = {}
       console.log('this.readerForm.datasourceId:' + this.readerForm.datasourceId)
       const sourceId = this.readerForm.datasourceId
-      obj = {
-        datasourceId: this.writerForm.datasourceId,
-        tableName: this.createTableName,
-        sourceId: sourceId,
-        readerTableName: this.readerForm.tableName,
-        columnsList: this.writerForm.columns
-      }
-      dsQueryApi.createTable(obj).then(response => {
-        this.$notify({
-          title: 'Success',
-          message: 'Create Table Successfully',
-          type: 'success',
-          duration: 2000
+      if (this.multipleSchema.length > 0) {
+        this.multipleSchema.forEach(schema => {
+          const obj = {
+            datasourceId: this.writerForm.datasourceId,
+            tableList: [this.createTableName],
+            sourceId: sourceId,
+            readerTableName: this.readerForm.tableName,
+            targetSchema: schema,
+            sourceSchema: this.readerForm.tableSchema
+          }
+          console.log('obj:' + JSON.stringify(obj))
+          dsQueryApi.createTables(obj).then(response => {
+            this.$notify({
+              title: 'Success',
+              message: 'Create Table Successfully',
+              type: 'success',
+              duration: 2000
+            })
+            this.loading = false
+          }).catch(() => console.log('promise catch err'))
         })
-      }).catch(() => console.log('promise catch err'))
+      } else {
+        obj = {
+          datasourceId: this.writerForm.datasourceId,
+          tableName: [this.createTableName],
+          sourceId: sourceId,
+          readerTableName: this.readerForm.tableName,
+          columnsList: this.writerForm.columns
+        }
+        dsQueryApi.createTable(obj).then(response => {
+          this.$notify({
+            title: 'Success',
+            message: 'Create Table Successfully',
+            type: 'success',
+            duration: 2000
+          })
+          this.loading = false
+        }).catch(() => console.log('promise catch err'))
+      }
       this.writerForm.tableName = obj.tableName
       this.fromTableName = obj.tableName
-
       console.log('writerForm.tableName: ' + this.writerForm.tableName)
       console.log('this.fromTableName: ' + this.fromTableName)
     }

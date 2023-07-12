@@ -17,6 +17,28 @@
       <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-position" @click="handleBatchExecute">
         批量执行
       </el-button>
+      <el-button class="filter-item" style="margin-left: 10px;" type="primary" icon="el-icon-setting" @click="handleCopy">
+        任务复制
+      </el-button>
+
+      <el-dialog :visible.sync="dialogVisible" width="30%" :before-close="handleDialogClose">
+        <el-form :model="dialogForm">
+          <el-form-item label="来源数据源">
+            <el-select multiple v-model="dialogForm.select1">
+              <el-option v-for="item in sourceOptions" :key="item.id" :label="item.datasourceName" :value="item.id" />
+            </el-select>
+          </el-form-item>
+          <el-form-item label="目标数据源">
+            <el-select multiple v-model="dialogForm.select2">
+              <el-option v-for="item in targetOptions" :key="item.id" :label="item.datasourceName" :value="item.id" />
+            </el-select>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+    <el-button @click="dialogVisible = false">取消</el-button>
+    <el-button type="primary" @click="confirmCopy">确定</el-button>
+  </span>
+      </el-dialog>
       <!-- <el-checkbox v-model="showReviewer" class="filter-item" style="margin-left:15px;" @change="tableKey=tableKey+1">
         reviewer
       </el-checkbox> -->
@@ -334,7 +356,7 @@ import PowershellEditor from '@/components/PowershellEditor'
 import * as datasourceApi from '@/api/datax-jdbcDatasource'
 import * as jobProjectApi from '@/api/datax-job-project'
 import { isJSON } from '@/utils/validate'
-
+import { list as jdbcDsList } from '@/api/datax-jdbcDatasource'
 export default {
   name: 'JobInfo',
   components: { Pagination, JsonEditor, ShellEditor, PythonEditor, PowershellEditor, Cron },
@@ -363,6 +385,13 @@ export default {
       callback()
     }
     return {
+      selectedRows: [],
+      jdbcDsQuery: {
+        current: 1,
+        size: 600,
+        ifCount: true,
+        ascs: 'datasource_name'
+      },
       projectIds: '',
       list: null,
       listLoading: true,
@@ -499,7 +528,14 @@ export default {
         { value: 502, label: '失败(超时)' },
         { value: 200, label: '成功' },
         { value: 0, label: '无' }
-      ]
+      ],
+      dialogVisible: false, // 批量复制相关功能
+      dialogForm: {
+        select1: '',
+        select2: ''
+      },
+      sourceOptions: [], // 这里填充你的选项数据
+      targetOptions: [] // 这里填充你的选项数据
     }
   },
   created() {
@@ -508,9 +544,21 @@ export default {
     this.getJobIdList()
     this.getJobProject()
     this.getDataSourceList()
+    this.getJdbcDs()
   },
 
   methods: {
+    // 获取可用数据源
+    getJdbcDs(type) {
+      this.loading = true
+      jdbcDsList(this.jdbcDsQuery).then(response => {
+        const { records } = response
+        this.sourceOptions = records
+        this.targetOptions = records
+        console.log(records)
+        this.loading = false
+      })
+    },
     handleClose(done) {
       this.$confirm('确认关闭？')
         .then(_ => {
@@ -740,6 +788,11 @@ export default {
             type: 'success',
             duration: 2000
           })
+        }).catch(() => {
+          this.$message({
+            type: 'info',
+            message: '已取消复制'
+          })
         })
       })
     },
@@ -782,6 +835,55 @@ export default {
         const { content } = response
         this.registerNode.push(content)
       })
+    },
+    handleCopy() {
+      this.loading = true
+      this.dialogVisible = true
+    },
+    handleDialogClose() {
+      this.dialogVisible = false
+    },
+    handleSelectionChange(selectedRows) {
+      this.selectedRows = selectedRows
+    },
+    confirmCopy() {
+      // 在这里处理复制逻辑
+      if (this.dialogForm.select1.length !== this.dialogForm.select2.length) {
+        this.$message({
+          type: 'error',
+          message: '来源数据源和目标数据源的数量不匹配，请重新选择！'
+        })
+        return
+      }
+      // 获取选中的行
+      if (this.selectedRows.length === 0) {
+        this.$message({
+          type: 'error',
+          message: '未选择行,请重新选择!'
+        })
+        return
+      }
+      // TODO 构造出 批量复制需要处理的数据结构
+      const tasks = this.selectedRows.map(row => row.id)
+      const dsList = this.dialogForm.select1.map((source, index) => ({
+        source: String(source),
+        targetSource: String(this.dialogForm.select2[index])
+      }))
+      console.log('dsList: ' + JSON.stringify(dsList))
+      const data = {
+        jobs: tasks,
+        dsList: dsList
+      }
+      console.log('data: ' + JSON.stringify(data))
+      job.copyJob(data).then(response => {
+        this.$notify({
+          title: 'Success',
+          message: 'Execute Successfully',
+          type: 'success',
+          duration: 1000
+        })
+      })
+      this.dialogVisible = false
     }
   }
 }

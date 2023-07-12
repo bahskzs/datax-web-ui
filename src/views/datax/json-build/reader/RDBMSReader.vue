@@ -102,6 +102,7 @@ export default {
         this.getSchema()
       } else {
         this.getTables('rdbmsReader')
+        console.log('rTbList :' + this.rTbList.length)
       }
     }
   },
@@ -138,6 +139,7 @@ export default {
             this.rTbList = response
           }
         })
+
       }
     },
     getSchema() {
