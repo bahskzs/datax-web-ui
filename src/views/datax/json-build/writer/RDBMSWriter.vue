@@ -33,7 +33,7 @@
         </el-select>
       </el-form-item>
       <el-form-item label="Schema[单源多目标]:" v-show="writerForm.autoCreate">
-        <el-select multiple v-model="multipleSchema" filterable style="width: 300px" >
+        <el-select  multiple multiple-limit="0" v-model="multipleSchema" filterable style="width: 300px" >
           <el-option
             v-for="item in schemaList"
             :key="item"

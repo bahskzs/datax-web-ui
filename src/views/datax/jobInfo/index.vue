@@ -21,17 +21,25 @@
         任务复制
       </el-button>
 
-      <el-dialog :visible.sync="dialogVisible" width="30%" :before-close="handleDialogClose">
+      <el-dialog :visible.sync="dialogVisible" width="40%" :before-close="handleDialogClose">
         <el-form :model="dialogForm">
-          <el-form-item label="来源数据源">
-            <el-select multiple v-model="dialogForm.select1">
-              <el-option v-for="item in sourceOptions" :key="item.id" :label="item.datasourceName" :value="item.id" />
-            </el-select>
+          <el-form-item label="来源数据源"  >
+            <el-cascader
+              :options="sourceOptions"
+              :props="props"
+              clearable
+              filterable
+              v-model="dialogForm.select1"
+              style="width: 500px"></el-cascader>
           </el-form-item>
-          <el-form-item label="目标数据源">
-            <el-select multiple v-model="dialogForm.select2">
-              <el-option v-for="item in targetOptions" :key="item.id" :label="item.datasourceName" :value="item.id" />
-            </el-select>
+          <el-form-item label="目标数据源"  >
+            <el-cascader
+              :options="targetOptions"
+              :props="props"
+              clearable
+              filterable
+              v-model="dialogForm.select2"
+              style="width: 500px"></el-cascader>
           </el-form-item>
         </el-form>
         <span slot="footer" class="dialog-footer">
@@ -385,6 +393,7 @@ export default {
       callback()
     }
     return {
+      props: { multiple: true },
       selectedRows: [],
       jdbcDsQuery: {
         current: 1,
@@ -535,6 +544,7 @@ export default {
         select2: ''
       },
       sourceOptions: [], // 这里填充你的选项数据
+      sourceOptionsNew: [],
       targetOptions: [] // 这里填充你的选项数据
     }
   },
@@ -545,16 +555,44 @@ export default {
     this.getJobProject()
     this.getDataSourceList()
     this.getJdbcDs()
+    this.transformToNested()
   },
 
   methods: {
+    transformToNested(options = []) {
+      const map = new Map()
+      options.forEach(option => {
+        if (!map.has(option.datasourceGroup)) {
+          map.set(option.datasourceGroup, {
+            value: option.datasourceGroup,
+            label: option.datasourceGroup,
+            children: []
+          })
+        }
+        map.get(option.datasourceGroup).children.push({
+          value: option.id,
+          label: option.datasourceName
+        })
+      })
+      return Array.from(map.values())
+    },
     // 获取可用数据源
     getJdbcDs(type) {
       this.loading = true
       jdbcDsList(this.jdbcDsQuery).then(response => {
         const { records } = response
-        this.sourceOptions = records
-        this.targetOptions = records
+        // this.sourceOptions = records
+        // this.targetOptions = records
+        if (Array.isArray(records)) {
+          this.sourceOptions = this.transformToNested(records)
+        } else {
+          console.error('records is not an array:', records)
+        }
+        if (Array.isArray(records)) {
+          this.targetOptions = this.transformToNested(records)
+        } else {
+          console.error('records is not an array:', records)
+        }
         console.log(records)
         this.loading = false
       })
@@ -848,12 +886,18 @@ export default {
     },
     confirmCopy() {
       // 在这里处理复制逻辑
-      if (this.dialogForm.select1.length !== this.dialogForm.select2.length) {
+      if (this.dialogForm.select1.length !== this.dialogForm.select2.length && this.dialogForm.select2.length > 1) {
         this.$message({
           type: 'error',
           message: '来源数据源和目标数据源的数量不匹配，请重新选择！'
         })
         return
+      }
+      if (this.dialogForm.select1.length !== this.dialogForm.select2.length && this.dialogForm.select2.length === 1) {
+        this.$message({
+          type: 'info',
+          message: '请注意，当前为单源多目标模式!'
+        })
       }
       // 获取选中的行
       if (this.selectedRows.length === 0) {
@@ -865,10 +909,26 @@ export default {
       }
       // TODO 构造出 批量复制需要处理的数据结构
       const tasks = this.selectedRows.map(row => row.id)
-      const dsList = this.dialogForm.select1.map((source, index) => ({
-        source: String(source),
-        targetSource: String(this.dialogForm.select2[index])
+      // 多源多目标模式
+      let dsList = this.dialogForm.select1.map((source, index) => ({
+        source: String(source).split(',')[1],
+        targetSource: String(this.dialogForm.select2[index]).split(',')[1]
       }))
+      // TODO 多源单目标模式
+      dsList = this.dialogForm.select1.map((source, index) => ({
+        source: String(source).split(',')[1],
+        targetSource: String(this.dialogForm.select2[0]).split(',')[1]
+      }))
+
+      // const dsList = this.dialogForm.select1.map((sourcePath, index) => {
+      //   const source = sourcePath[sourcePath.length - 1] // 获取叶子节点的值
+      //   const targetSourcePath = this.dialogForm.select2[index]
+      //   const targetSource = targetSourcePath[targetSourcePath.length - 1] // 获取叶子节点的值
+      //   return {
+      //     source: String(source),
+      //     targetSource: String(targetSource)
+      //   }
+      // })
       console.log('dsList: ' + JSON.stringify(dsList))
       const data = {
         jobs: tasks,

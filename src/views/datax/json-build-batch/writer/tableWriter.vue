@@ -33,7 +33,7 @@
         >是否自动构建目标表(注:同名表自动追加版本)
         </el-checkbox>
         <el-form-item label="Schema[单源多目标]:" v-show="writerForm.autoCreate">
-          <el-select multiple v-model="multipleSchema" filterable style="width: 300px" >
+          <el-select multiple multiple-limit="0" v-model="multipleSchema" filterable style="width: 300px" >
             <el-option
               v-for="item in schemaList"
               :key="item"

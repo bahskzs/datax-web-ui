@@ -158,7 +158,6 @@ export const asyncRoutes = [
     name: 'job',
     meta: { title: '任务管理', icon: 'work' },
     children: [
-
       {
         path: 'jobInfo',
         name: 'JobInfo',
@@ -257,6 +256,27 @@ export const asyncRoutes = [
         name: 'User',
         component: () => import('@/views/datax/user/index'),
         meta: { title: '用户管理', icon: 'table' }
+      }
+    ]
+  },
+  {
+    path: '/datax/authority',
+    component: Layout,
+    redirect: '/datax/authority',
+    name: 'authority',
+    meta: { title: '权限管理', icon: 'work' },
+    children: [
+      {
+        path: 'reportUser',
+        name: 'ReportUser',
+        component: () => import('@/views/datax/authority/user/index'),
+        meta: { title: '报表用户权限', icon: 'task-cfg' }
+      },
+      {
+        path: 'reportMenu',
+        name: 'ReportMenu',
+        component: () => import('@/views/datax/authority/menu/index'),
+        meta: { title: '报表菜单管理', icon: 'guide', noCache: false }
       }
     ]
   },
