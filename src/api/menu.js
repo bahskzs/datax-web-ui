@@ -20,7 +20,7 @@ export function updateReport(data, id) {
 
 export function deleteReport(id) {
   return request({
-    url: '/api/menu/delete' + id,
+    url: '/api/menu/delete/' + id,
     method: 'delete'
   })
 }

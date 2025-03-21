@@ -43,9 +43,9 @@
       <el-table-column label="排序" align="center" :show-overflow-tooltip="true" width="100">
         <template slot-scope="scope">{{ scope.row.sort }}</template>
       </el-table-column>
-<!--      <el-table-column label="区划" width="200" align="center" :show-overflow-tooltip="true">-->
-<!--        <template slot-scope="scope">{{ scope.row.areaList }}</template>-->
-<!--      </el-table-column>-->
+      <el-table-column label="区划" width="200" align="center" :show-overflow-tooltip="true">
+        <template slot-scope="scope">{{ scope.row.areaList }}</template>
+      </el-table-column>
       <el-table-column label="状态" width="100" align="center">
         <template slot-scope="scope">{{ scope.row.status }}</template>
       </el-table-column>
@@ -68,54 +68,53 @@
 <!--      @pagination="fetchData"-->
 <!--    />-->
 
-<!--    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="800px">-->
-<!--      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="100px">-->
-<!--        <el-form-item label="模块名称" prop="moduleName">-->
-<!--          <el-select-->
-<!--            v-model="temp.moduleName"-->
-<!--            placeholder="模块名称"-->
-<!--            style="width: 200px"-->
-<!--            @change="selectDataSource(temp.moduleName)"-->
-<!--          >-->
-<!--            <el-option v-for="item in moduleName" :key="item.value" :label="item.label" :value="item.value" />-->
-<!--          </el-select>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="报表名称" prop="reportName">-->
-<!--          <el-input v-model="temp.reportName" placeholder="报表名称" style="width: 40%" />-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="报表地址" prop="reportUrl">-->
-<!--          <el-input v-model="temp.reportUrl" placeholder="报表地址" style="width: 40%" />-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="归属区划" prop="reportRegion">-->
-<!--          <el-select-->
-<!--            v-model="temp.reportRegion"-->
-<!--            placeholder="归属区划"-->
-<!--            multiple-->
-<!--            style="width: 200px"-->
-<!--          >-->
-<!--            <el-option v-for="item in region" :key="item.value" :label="item.label" :value="item.value" />-->
-<!--          </el-select>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="排序" prop="reportSort" >-->
-<!--          <el-input-number v-model="num"  :min="1" label="描述文字"></el-input-number>-->
-<!--        </el-form-item>-->
-<!--        <el-form-item label="状态" prop="status" >-->
-<!--          <el-switch-->
-<!--            v-model="value1"-->
-<!--            active-text="启用"-->
-<!--            inactive-text="禁用">-->
-<!--          </el-switch>-->
-<!--        </el-form-item>-->
-<!--      </el-form>-->
-<!--      <div slot="footer" class="dialog-footer">-->
-<!--        <el-button @click="dialogFormVisible = false">-->
-<!--          取消-->
-<!--        </el-button>-->
-<!--        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">-->
-<!--          确认-->
-<!--        </el-button>-->
-<!--      </div>-->
-<!--    </el-dialog>-->
+    <el-dialog :title="textMap[dialogStatus]" :visible.sync="dialogFormVisible" width="800px">
+      <el-form ref="dataForm" :rules="rules" :model="temp" label-position="left" label-width="100px">
+        <el-form-item label="模块名称" prop="moduleId">
+          <el-select
+            v-model="temp.moduleId"
+            placeholder="模块名称"
+            style="width: 200px"
+          >
+            <el-option v-for="item in moduleName" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="报表名称" prop="reportName">
+          <el-input v-model="temp.reportName" placeholder="报表名称" style="width: 40%" />
+        </el-form-item>
+        <el-form-item label="报表地址" prop="reportUrl">
+          <el-input v-model="temp.reportAddress" placeholder="报表地址" style="width: 40%" />
+        </el-form-item>
+        <el-form-item label="归属区划" prop="reportRegion">
+          <el-select
+            v-model="temp.areaList"
+            placeholder="归属区划"
+            multiple
+            style="width: 200px"
+          >
+            <el-option v-for="item in region" :key="item.value" :label="item.label" :value="item.value" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="排序" prop="reportSort" >
+          <el-input-number v-model="num"  :min="1" label="描述文字"></el-input-number>
+        </el-form-item>
+        <el-form-item label="状态" prop="status" >
+          <el-switch
+            v-model="value1"
+            active-text="启用"
+            inactive-text="禁用">
+          </el-switch>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">
+          取消
+        </el-button>
+        <el-button type="primary" @click="dialogStatus==='create'?createData():updateData()">
+          确认
+        </el-button>
+      </div>
+    </el-dialog>
 <!--    <el-dialog :visible.sync="dialogPluginVisible" title="Reading statistics">-->
 <!--      <el-table :data="pluginData" border fit highlight-current-row style="width: 100%">-->
 <!--        <el-table-column prop="key" label="Channel" />-->
@@ -153,11 +152,20 @@ export default {
       num: 1,
       value1: true,
       list: null,
-      listLoading: false,
+      listLoading: true,
       total: 0,
       listQuery: {
         current: 1,
         size: 100
+      },
+      menuObj: {
+        moduleName: '',
+        reportName: '',
+        reportUrl: '',
+        reportAddress: '',
+        areaArr: '',
+        sort: '',
+        status: ''
       },
       dialogPluginVisible: false,
       pluginData: [],
@@ -170,15 +178,13 @@ export default {
       rules: {
         moduleName: [{ required: true, message: 'this is required', trigger: 'blur' }],
         reportName: [{ required: true, message: 'this is required', trigger: 'blur' }],
-        reportUrl: [{ required: true, message: 'this is required', trigger: 'blur' }],
         reportAddress: [{ required: true, message: 'this is required', trigger: 'blur' }],
         areaList: [{ required: true, message: 'this is required', trigger: 'blur' }],
         sort: [{ required: true, message: 'this is required', trigger: 'blur' }],
         status: [{ required: true, message: 'this is required', trigger: 'blur' }]
       },
       temp: {
-        id: undefined,
-        moduleName: '',
+        moduleId: '',
         reportName: '',
         reportAddress: '',
         areaList: '',
@@ -187,12 +193,12 @@ export default {
       },
       visible: true,
       moduleName: [
-        { value: '基础数据', label: '基础数据' },
-        { value: '预算编制', label: '预算编制' },
-        { value: '指标管理', label: '指标管理' },
-        { value: '国库集中支付', label: '国库集中支付' },
-        { value: '总预算会计', label: '总预算会计' },
-        { value: '国库工资统发', label: '国库工资统发' }
+        { label: '基础数据', value: '1' },
+        { label: '预算编制', value: '2' },
+        { label: '指标管理', value: '3' },
+        { label: '国库集中支付', value: '4' },
+        { label: '总预算会计', value: '5' },
+        { label: '国库工资统发', value: '6' }
       ],
       region: [
         { value: '3500', label: '福建省本级' },
@@ -214,17 +220,27 @@ export default {
     fetchData() {
       this.listLoading = true
       menuApi.getList(this.listQuery).then(response => {
-        const { records } = response
+        const records = response
+        console.log('记录:' + records)
         // const { total } = response
         // this.total = total
+        records.forEach(item => {
+          if (item.areaList) {
+            const formattedAreaList = item.areaList.map(area => {
+              return `${area.areaCode}-${area.areaName}`
+            })
+            item.areaList = formattedAreaList.join(', ') // 如果需要以逗号分隔的字符串形式存储
+          }
+          item.status = (item.status === 1 ? '启用' : '禁用')
+        })
         this.list = records
+        // 遍历records
         this.listLoading = false
       })
     },
     resetTemp() {
       this.temp = {
-        id: undefined,
-        moduleName: '',
+        moduleId: '',
         reportName: '',
         reportAddress: '',
         areaList: '',
@@ -243,7 +259,17 @@ export default {
     createData() {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
-          datasourceApi.created(this.temp).then(() => {
+          debugger
+          this.temp.areaList = this.temp.areaList.map(
+            (item) => {
+              return {
+                'areaCode': item,
+                'areaName': this.region.find((region) => region.value === item).label
+              }
+            }
+          )
+          debugger
+          menuApi.createReport(this.temp).then(() => {
             this.fetchData()
             this.dialogFormVisible = false
             this.$notify({
@@ -257,7 +283,6 @@ export default {
       })
     },
     handleUpdate(row) {
-      this.getShowStrategy(row.datasource)
       this.temp = Object.assign({}, row) // copy obj
       this.dialogStatus = 'update'
       this.dialogFormVisible = true
@@ -269,7 +294,7 @@ export default {
       this.$refs['dataForm'].validate((valid) => {
         if (valid) {
           const tempData = Object.assign({}, this.temp)
-          datasourceApi.updated(tempData).then(() => {
+          menuApi.updateReport(tempData).then(() => {
             this.fetchData()
             this.dialogFormVisible = false
             this.$notify({
@@ -284,11 +309,9 @@ export default {
     },
     handleDelete(row) {
       console.log('删除')
-      const idList = []
-      idList.push(row.id)
       // 拼成 idList=xx
       // 多个比较麻烦，这里不处理
-      datasourceApi.deleted({ idList: row.id }).then(response => {
+      menuApi.deleteReport(row.id).then(response => {
         this.fetchData()
         this.$notify({
           title: 'Success',
@@ -298,12 +321,6 @@ export default {
         })
       })
       // const index = this.list.indexOf(row)
-    },
-    handleFetchPv(id) {
-      datasourceApi.fetched(id).then(response => {
-        this.pluginData = response
-        this.dialogPvVisible = true
-      })
     },
     formatJson(filterVal, jsonData) {
       return jsonData.map(v => filterVal.map(j => {
